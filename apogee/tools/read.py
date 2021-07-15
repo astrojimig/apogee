@@ -715,6 +715,7 @@ def obslog(year=None, hemisphere=None):
        observation log
     HISTORY:
        2013-11-04 - Written - Bovy (IAS)
+       2021-07-15 - Updated for DR17 - Imig (NMSU)
     """
     obslogfilename= path.obslogPath(year=year, hemisphere=hemisphere)
     if not os.path.exists(obslogfilename):
@@ -728,6 +729,8 @@ def obslog(year=None, hemisphere=None):
             year= 5
         elif path._default_dr() == '16':
                 year= 7
+        elif path._default_dr() == '17':
+                year= 10
         else: raise IOError('No default year available for DR{}, need to set it by hand'.format(path._default_dr()))
     if year > 3:
         genfromtxtKwargs= {'delimiter':', ',

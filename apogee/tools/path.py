@@ -371,6 +371,7 @@ def obslogPath(year=None, hemisphere=None):
        2012-01-02 - Written - Bovy (IAS)
        2012-11-04 - Edited for obslog - Bovy (IAS)
        2018-03-26 - Edited for APOGEE-2 DR14 - Bovy (UofT)
+       2021-07-15 - Edited for DR17 - Imig (NMSU)
     """
     base = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                    'obslogs') #point to new location for obslogs...
@@ -398,6 +399,18 @@ def obslogPath(year=None, hemisphere=None):
                                 'obs-summary-year6-south.csv')
         else:
             raise IOError('Must set hemisphere to north or south for year 6... (hemisphere = None returns north!)')
+    
+    elif year == 10: 
+        if hemisphere == 'north' or hemisphere == None: #return north by default?
+            return os.path.join(base,
+                                'obs-summary-year10-north.csv')
+
+        elif hemisphere == 'south':
+            return os.path.join(base,
+                                'obs-summary-year10-south.csv')
+        else:
+            raise IOError('Must set hemisphere to north or south for year 6+... (hemisphere = None returns north!)')
+        
 
 def apogeeTargetDirPath(dr=None):
     """
