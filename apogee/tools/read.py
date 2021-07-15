@@ -402,12 +402,25 @@ def allVisit(rmcommissioning=True,
     HISTORY:
        2013-11-07 - Written - Bovy (IAS)
        2018-02-28 - Edited for new monthly pipeline runs - Bovy (UofT)
+       2021-07-15 - Updated for DR17 selection function compatibility - Imig (NMSU)
     """
     filePath= path.allVisitPath(mjd=mjd)
     if not os.path.exists(filePath):
         download.allVisit(mjd=mjd)
     #read allVisit file
     data= fitsread(path.allVisitPath(mjd=mjd))
+
+    #DR17 edits - add a column to preserve original indexing of file
+    newdtype = data.dtype.descr+\
+            [('ORIG_INDX','>i4')]
+    newdata= numpy.empty(len(data),dtype=newdtype)
+    for name in data.dtype.names: #copy over file data
+        newdata[name]= data[name]
+
+    newdata['ORIG_INDX'] = numpy.arange(len(data)) #add column with original row index
+    data=newdata
+    #end of DR17 edits
+
     if raw: return data
     #Some cuts
     if rmcommissioning:
