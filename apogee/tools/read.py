@@ -368,8 +368,13 @@ def allStar(rmcommissioning=True,
                            or int(path._APOGEE_REDUX[1:]) > 600):
         data= esutil.numpy_util.add_fields(data,[('METALS', float),
                                                  ('ALPHAFE', float)])
-        data['METALS']= data['PARAM'][:,paramIndx('metals')]
-        data['ALPHAFE']= data['PARAM'][:,paramIndx('alpha')]
+        if path._APOGEE_REDUX[2:] != '17':
+            data['METALS']= data['PARAM'][:,paramIndx('metals')]
+            data['ALPHAFE']= data['PARAM'][:,paramIndx('alpha')]
+        else:
+            data['METALS']= data['PARAM'][:,paramIndx('M_H')]
+            data['ALPHAFE']= data['PARAM'][:,paramIndx('ALPHA_M')]
+
     if not xmatch is None:
         return (data,ma)
     else:
@@ -457,7 +462,10 @@ def allVisit(rmcommissioning=True,
             try:
                 plateDtypeIndx= dt.index(('PLATE', '|S13'))
             except ValueError: #PLATE column is not string - try U
-                plateDtypeIndx = dt.index(('PLATE', '<U13'))
+                try: 
+                    plateDtypeIndx= dt.index(('PLATE', '|S16'))#DR17 is |S16
+                except ValueError: #PLATE column is not string - try U
+                    plateDtypeIndx = dt.index(('PLATE', '<U13'))
             if plateInt:
                 dt[plateDtypeIndx]= (dt[plateDtypeIndx][0],'int')
                 dt= numpy.dtype(dt)

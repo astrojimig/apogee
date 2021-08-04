@@ -312,6 +312,32 @@ def astroNNPath(dr=None):
         return os.path.join(_APOGEE_DATA,'dr17','apogee','vac',
                             'apogee-astronn',
                             'apogee_astroNN-DR{}.fits'.format(dr))
+
+
+def distmassPath(dr=None):
+    """
+    NAME:
+       distmassPath
+    PURPOSE:
+       returns the path of the relevant file
+    INPUT:
+       dr= return the path corresponding to this data release
+    OUTPUT:
+       path string
+    REQUIREMENTS:
+       environment variables APOGEE_DATA pointing to the data directory
+       APOGEE_REDUX with the current reduction version (e.g., v0.91)
+    HISTORY:
+       2021-07-15 - Written - Imig (NMSU)
+    """
+    if dr is None: dr= _default_dr()
+    if int(dr) < 17:
+        raise ValueError('distmass catalog for DR<17 not available')
+    specReduxPath= apogeeSpectroReduxDirPath(dr=dr)
+    if dr == '17':
+        return os.path.join(_APOGEE_DATA,'dr17','apogee','vac',
+                            'apogee-distmass/',
+                            'APOGEE_DistMass-v1_0.fits')
         
 def astroNNDistancesPath(dr=None):
     """
@@ -468,6 +494,7 @@ def apogeePlatePath(dr=None):
        2012-01-02 - Written - Bovy (IAS)
        2012-11-04 - Edited for apogeePlate - Bovy (IAS)
        2018-03-16 - Edited for DR14 - Bovy (UofT)
+       2021-08-04 - Edited for DR17 - Imig (NMSU)
     """
     if dr is None: dr= _default_dr()
     if dr == '11' or dr == '12':
@@ -483,7 +510,7 @@ def apogeePlatePath(dr=None):
     elif int(dr) == 17: #apogeePlate is in a completely different place/format....
         redux= _redux_dr(dr=dr)
         specReduxPath= apogeeSpectroASPCAPDirPath(dr=dr)
-        platename = os.path.join(specReduxPath,redux,
+        platename = os.path.join(specReduxPath,'synspec',
                             'allPlate-dr17-synspec.fits')
         return platename
     else:
