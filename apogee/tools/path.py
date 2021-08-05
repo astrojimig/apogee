@@ -511,7 +511,7 @@ def apogeePlatePath(dr=None):
         redux= _redux_dr(dr=dr)
         specReduxPath= apogeeSpectroASPCAPDirPath(dr=dr)
         platename = os.path.join(specReduxPath,'synspec',
-                            'allPlate-dr17-synspec.fits')
+                            'allPlates-dr17-synspec.fits')
         return platename
     else:
         platename= 'apogeePlate_DR%s.fits' % dr
