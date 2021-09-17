@@ -127,6 +127,32 @@ def rcsample(dr=None):
     _download_file(downloadPath,filePath,dr,verbose=False)
     return None
 
+
+def distmass(dr=None):
+    """
+    NAME:
+       distmass
+    PURPOSE:
+       download the distmass VAC file
+    INPUT:
+       dr= return the path corresponding to this data release (general default)
+    OUTPUT:
+       (none; just downloads)
+    HISTORY:
+       2021-07-15- Written - Imig (NMSU)
+    """
+    if dr is None: dr= path._default_dr()
+    # First make sure the file doesn't exist
+    filePath= path.distmassPath(dr=dr)
+    if os.path.exists(filePath): return None
+    # Create the file path
+    else:
+        downloadPath= filePath.replace(os.path.join(path._APOGEE_DATA,
+                                                    _dr_string(dr)),
+                                       _base_url(dr=dr))
+        _download_file(downloadPath,filePath,dr,verbose=True)
+    return None
+
 def astroNN(dr=None):
     """
     NAME:

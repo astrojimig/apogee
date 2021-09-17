@@ -117,6 +117,8 @@ def allStar(rmcommissioning=True,
             use_astroNN_distances=False,
             use_astroNN_ages=False,
             use_astroNN_orbits=False,
+            use_distmass_distances=False,
+            use_distmass_ages=False,
             adddist=False,
             distredux=None,
             rmdups=False,
@@ -145,6 +147,8 @@ def allStar(rmcommissioning=True,
        use_astroNN_distances= (False) only swap in astroNN distances, not  parameters and abundances and ages
        use_astroNN_ages= (False) only swap in astroNN ages, not  parameters and abundances and distances
        use_astroNN_orbits= (False) only swap in orbits/Galactocentric coordinates
+       use_distmass_distances= (False) swap in distmass distances
+       use_distmass_ages= (False) swap in distmass ages
        adddist= (default: False) add distances (DR10/11 Hayden distances, DR12 combined distances)
        distredux= (default: DR default) reduction on which the distances are based
        rmdups= (False) if True, remove duplicates (very slow)
@@ -162,6 +166,7 @@ def allStar(rmcommissioning=True,
        2018-02-15 - Add astroNN distances and corresponding options - Bovy (UofT)
        2018-02-16 - Add astroNN ages and corresponding options - Bovy (UofT)
        2019-08-13 - Edited for DR16 (incl. astroNN) - Bovy (UofT)
+       2021-08-30 - Edited for DR17 / added distmass options - Imig (NMSU)
     """
     if dr is None:
         filePath= path.allStarPath(mjd=mjd)
@@ -197,6 +202,16 @@ def allStar(rmcommissioning=True,
         astroNNdata= astroNN()
         data= _add_astroNN_orbits(data,astroNNdata)
         del astroNNdata
+    if use_distmass_ages:
+        _warn_distmass()
+        distmassdata= distmass()
+        data= _add_distmass_ages(data,distmassdata)
+        del distmassdata
+    if use_distmass_distances:
+        _warn_distmass()
+        distmassdata= distmass()
+        data= _add_distmass_distances(data,distmassdata)
+        del distmassdata
     if raw: return data
     #Remove duplicates, cache
     if rmdups:
@@ -726,6 +741,25 @@ def astroNNAges(dr=None):
         download.astroNNAges(dr=dr)
     #read astroNN file
     return fitsread(path.astroNNAgesPath(dr=dr))
+
+def distmass(dr=None):
+    """
+    NAME:
+       distmass
+    PURPOSE:
+       read the distmass file
+    INPUT:
+       dr= data reduction to load the catalog for (automatically set based on APOGEE_REDUX if not given explicitly)
+    OUTPUT:
+       distmass data
+    HISTORY:
+       2021-08-30 - Written - Imig (NMSU)
+    """
+    filePath= path.distmassPath(dr=dr)
+    if not os.path.exists(filePath):
+        download.distmass(dr=dr)
+    #read distmass file
+    return fitsread(path.distmassPath(dr=dr))
 
 
 def obslog(year=None, hemisphere=None):
@@ -1455,3 +1489,50 @@ def _warn_astroNN_ages():
 
 def _warn_astroNN_orbits():
     warnings.warn("Adding orbits and Galactocentric coordinates from DR16 astroNN VAC, calculated using galpy (Bovy 2015) and the staeckel approximation (Mackereth & Bovy 2018)")
+
+def _add_distmass_distances(data,distmassDistancesdata):
+    dr= path._default_dr()
+    fields_to_append= ['DISTANCE', 'DISTANCE_ERR']
+    if True:
+        # Faster way to join structured arrays (see https://stackoverflow.com/questions/5355744/numpy-joining-structured-arrays)
+        newdtype= data.dtype.descr+\
+            [(f,'<f8') for f in fields_to_append]
+        newdata= numpy.empty(len(data),dtype=newdtype)
+        for name in data.dtype.names:
+            newdata[name]= data[name]
+        for f in fields_to_append:
+            newdata[f]= astroNNDistancesdata[f]
+        return newdata
+    else:
+        return numpy.lib.recfunctions.append_fields(\
+            data,
+            fields_to_append,
+            [distmassDistancesdata[f] for f in fields_to_append],
+            [distmassDistancesdata[f].dtype for f in fields_to_append],
+            usemask=False)
+
+def _add_distmass_distances(data,distmassagesdata):
+    dr= path._default_dr()
+    fields_to_append= ['AGE']
+    if True:
+        # Faster way to join structured arrays (see https://stackoverflow.com/questions/5355744/numpy-joining-structured-arrays)
+        newdtype= data.dtype.descr+\
+            [(f,'<f8') for f in fields_to_append]
+        newdata= numpy.empty(len(data),dtype=newdtype)
+        for name in data.dtype.names:
+            newdata[name]= data[name]
+        for f in fields_to_append:
+            newdata[f]= astroNNDistancesdata[f]
+        return newdata
+    else:
+        return numpy.lib.recfunctions.append_fields(\
+            data,
+            fields_to_append,
+            [distmassDistancesdata[f] for f in fields_to_append],
+            [distmassDistancesdata[f].dtype for f in fields_to_append],
+            usemask=False)
+
+
+def _warn_distmass():
+    warnings.warn("Adding ages/distances from distmass VAC, Stone-Martinez, Holtzman et al. (2021)")
+
