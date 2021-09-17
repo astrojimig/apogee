@@ -1365,18 +1365,18 @@ class apogeeSelect(apogeeSelectPlotsMixin):
             color_bins_jkmin = numpy.zeros((len(self._locations),5))+numpy.nan
             color_bins_jkmax = numpy.zeros((len(self._locations),5))+numpy.nan
             number_of_bins = numpy.zeros(len(self._locations))
-        short_cohorts= numpy.zeros((len(self._locations),20))
-        short_cohorts_total= numpy.zeros((len(self._locations),20))
-        short_cohorts_hmin= numpy.zeros((len(self._locations),20))+numpy.nan
-        short_cohorts_hmax= numpy.zeros((len(self._locations),20))+numpy.nan
-        medium_cohorts= numpy.zeros((len(self._locations),4))
-        medium_cohorts_total= numpy.zeros((len(self._locations),4))
-        medium_cohorts_hmin= numpy.zeros((len(self._locations),20))+numpy.nan
-        medium_cohorts_hmax= numpy.zeros((len(self._locations),20))+numpy.nan
-        long_cohorts= numpy.zeros((len(self._locations),2))
-        long_cohorts_total= numpy.zeros((len(self._locations),2))
-        long_cohorts_hmin= numpy.zeros((len(self._locations),20))+numpy.nan
-        long_cohorts_hmax= numpy.zeros((len(self._locations),20))+numpy.nan
+        short_cohorts= numpy.zeros((len(self._locations),50))
+        short_cohorts_total= numpy.zeros((len(self._locations),50))
+        short_cohorts_hmin= numpy.zeros((len(self._locations),50))+numpy.nan
+        short_cohorts_hmax= numpy.zeros((len(self._locations),50))+numpy.nan
+        medium_cohorts= numpy.zeros((len(self._locations),50))
+        medium_cohorts_total= numpy.zeros((len(self._locations),50))
+        medium_cohorts_hmin= numpy.zeros((len(self._locations),50))+numpy.nan
+        medium_cohorts_hmax= numpy.zeros((len(self._locations),50))+numpy.nan
+        long_cohorts= numpy.zeros((len(self._locations),50))
+        long_cohorts_total= numpy.zeros((len(self._locations),50))
+        long_cohorts_hmin= numpy.zeros((len(self._locations),50))+numpy.nan
+        long_cohorts_hmax= numpy.zeros((len(self._locations),50))+numpy.nan
         for ii in range(len(self._locations)):
             for jj in range(self._locPlatesIndx.shape[1]):
                 if self._locDesignsIndx[ii,jj] == -1: continue
@@ -1914,20 +1914,26 @@ class apogee2Select(apogeeSelect):
             for ii in tqdm.trange(len(specdata)):
                 #'VISITS' and 'ALL_VISITS' is no longer existing column in DR17 - use VISIT_PK for cross mathcing instead.
                 PKindex = specdata['VISIT_PK'][ii][specdata['VISIT_PK'][ii]>=0]
-                indx = allVisit['ORIG_INDX'] == PKindex[0]
-                if numpy.sum(indx) == 0.:
+                try:
                     indx = allVisit['ORIG_INDX'] == PKindex[0]
-                    for pki in range(1,len(PKindex)):
-                        indx=numpy.logical_or(indx, allVisit['ORIG_INDX'] == PKindex[pki])
-
+                    if numpy.sum(indx)==0:
+                        indx = allVisit['ORIG_INDX'] == PKindex[0]
+                        for pki in range(1,len(PKindex)):
+                            indx=numpy.logical_or(indx, allVisit['ORIG_INDX'] == PKindex[pki])
+                    avisitsplate= int(allVisit['PLATE'][indx][0])
+                    #Find the design corresponding to this plate
+                    tplatesIndx= (self._plates == avisitsplate)
+                except:
+                    print(PKindex)
+                    print(specdata['VISIT_PK'][ii])
+                    print(specdata['APSTAR_ID'][ii])
+                    indx=numpy.zeros(len(allVisit['ORIG_INDX']),dtype=bool)
+                    tplatesIndx=numpy.zeros(len(self._plates),dtype=bool)
                 if numpy.sum(indx) == 0.:
                     #Hasn't happened so far
                     print("Warning: no visit in combined spectrum found for data point %s" % specdata['APSTAR_ID'][ii]            )
                     print("ii = {}. PKindex = {}".format(ii,PKindex))
 
-                avisitsplate= int(allVisit['PLATE'][indx][0])
-                #Find the design corresponding to this plate
-                tplatesIndx= (self._plates == avisitsplate)
                 if numpy.sum(tplatesIndx) == 0.:
                     plateIncomplete+= 1
                     continue
@@ -2907,7 +2913,7 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
         else:
             allVisit= apread.allVisit(plateS4=True) #no need to cut to main, don't care about special plates
 
-        if self._year < 10:
+        if self.apo2year < 10:
             #make sure we have all the relevant columns for 'visits' as bytes - to make things easier
             if not isinstance(allVisit['PLATE'][0], (bytes,numpy.bytes_)):
                 visitsplates = [allVisit['PLATE'][ii].encode('utf-8') for ii in range(len(allVisit))]
@@ -3008,44 +3014,47 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
                     design = self._apogee1Design
                     desIndx = self._designs1Indx
                     locs = self._apo1_locations
-                elif specdata['LOCATION_ID'][ii] in self._apo2N_locations:
-                    survey = 2
-                    platelist = self._2Nplates
-                    design = self._apogee2NDesign
-                    desIndx = self._designs2NIndx
-                    locs = self._apo2N_locations
                 elif self.apo2year >= 7:
-                    if specdata['LOCATION_ID'][ii] in self._apo2S_locations:
+                    #if specdata['LOCATION_ID'][ii] in self._apo2S_locations:
+                    if b'lco25m' in specdata['APSTAR_ID'][ii]:
                         survey = 2
                         platelist = self._2Splates
                         design = self._apogee2SDesign
                         desIndx = self._designs2SIndx
                         locs = self._apo2S_locations
+                    #elif specdata['LOCATION_ID'][ii] in self._apo2N_locations:
+                    elif b'apo25m' in specdata['APSTAR_ID'][ii]:
+                        survey = 2
+                        platelist = self._2Nplates
+                        design = self._apogee2NDesign
+                        desIndx = self._designs2NIndx
+                        locs = self._apo2N_locations
+
                 else:
                     continue
                 
                 #'VISITS' and 'ALL_VISITS' is no longer existing column in DR17 - use VISIT_PK for cross mathcing instead.
                 PKindex = specdata['VISIT_PK'][ii][specdata['VISIT_PK'][ii]>=0]
-                indx = allVisit['ORIG_INDX'] == PKindex[0]
-                if numpy.sum(indx) == 0.:
+                try:
                     indx = allVisit['ORIG_INDX'] == PKindex[0]
-                    for pki in range(1,len(PKindex)):
-                        indx=numpy.logical_or(indx, allVisit['ORIG_INDX'] == PKindex[pki])
+                    if numpy.sum(indx)==0:
+                        indx = allVisit['ORIG_INDX'] == PKindex[0]
+                        for pki in range(1,len(PKindex)):
+                            indx=numpy.logical_or(indx, allVisit['ORIG_INDX'] == PKindex[pki])
+                    avisitsplate= int(allVisit['PLATE'][indx][0])
+                    #Find the design corresponding to this plate
+                    tplatesIndx= (self._plates == avisitsplate)
+                except:
+                    print(PKindex)
+                    print(specdata['VISIT_PK'][ii])
+                    print(specdata['APSTAR_ID'][ii])
+                    indx=numpy.zeros(len(allVisit['ORIG_INDX']),dtype=bool)
+                    tplatesIndx=numpy.zeros(len(self._plates),dtype=bool)
                 if numpy.sum(indx) == 0.:
                     #Hasn't happened so far
                     print("Warning: no visit in combined spectrum found for data point %s" % specdata['APSTAR_ID'][ii]            )
                     print("ii = {}. PKindex = {}".format(ii,PKindex))
-
-                if numpy.sum(indx) == 0.:
-                    #Hasn't happened so far
-                    print("Warning: no visit in combined spectrum found for data point %s" % specdata['APSTAR_ID'][ii]            )
-                    avisit= specdata['ALL_VISITS'][ii].split(',')[0].strip() #this is a visit ID
-                    print(avisit)
-                    indx= visits == avisit
-
-                avisitsplate= int(allVisit['PLATE'][indx][0])
-                #Find the design corresponding to this plate
-                tplatesIndx= (platelist == avisitsplate)
+                    
                 if numpy.sum(tplatesIndx) == 0.:
                     plateIncomplete+= 1
                     continue
@@ -3072,12 +3081,17 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
                 if survey == 1:
                     cbin = 0
                 locIndx= specdata['LOCATION_ID'][ii] == self._locations
-                if cohortnum > 0 and tcohort != '???' and \
-                        ((tcohort == 'short' and self._short_completion[locIndx,cohortnum-1] >= self._frac4complete) \
-                            or (tcohort == 'medium' and self._medium_completion[locIndx,cohortnum-1] >= self._frac4complete) \
-                            or (tcohort == 'long' and self._long_completion[locIndx,cohortnum-1] >= self._frac4complete)) and \
-                            self._bin_completion[locIndx,cbin] >= self._frac4complete:
-                    statIndx[ii]= True
+                try:
+                    if cohortnum > 0 and tcohort != '???' and \
+                            ((tcohort == 'short' and self._short_completion[locIndx,cohortnum-1] >= self._frac4complete) \
+                                or (tcohort == 'medium' and self._medium_completion[locIndx,cohortnum-1] >= self._frac4complete) \
+                                or (tcohort == 'long' and self._long_completion[locIndx,cohortnum-1] >= self._frac4complete)) and \
+                                self._bin_completion[locIndx,cbin] >= self._frac4complete:
+                        statIndx[ii]= True
+                except:
+                    print("Warning: problem with determine_statistical for %s" % specdata['APSTAR_ID'][ii])
+                    statIndx[ii] = False
+                    continue
 
         return statIndx*apread.mainIndx(specdata)
 
