@@ -3155,7 +3155,7 @@ def _combine_selfuncs(apo1sel, apo1locs, apo2sel):
 
 class apogeeEffectiveSelect:
     """Class that contains effective selection functions for APOGEE targets"""
-    def __init__(self,apoSel,MH=-1.49,JK0=None,dmap3d=None):
+    def __init__(self,apoSel,MH=-1.49,JK0=None,dmap3d=None, weights=None):
         """
         NAME:
            __init__
@@ -3166,6 +3166,7 @@ class apogeeEffectiveSelect:
            MH= (-1.49) absolute magnitude in H of the standard candle used or an array with samples of the absolute magnitude distribution for the tracer that you are using
            JK0 = (None) dereddened J-K of the standard candle or an array with samples of the colour distribution of the tracer being used
            dmap3d= if given, a mwdust.Dustmap3D object that returns the H-band extinction in 3D; if not set use the Green15 Pan-STARRS map
+           weights= (None) weight of each MH, JK0 (assumes these are now isochrone points and not samples)
         OUTPUT:
            object
         HISTORY:
@@ -3192,6 +3193,11 @@ class apogeeEffectiveSelect:
             self._JK0 = 0.6
         else:
             self._JK0= JK0
+        if weights is None:
+            #MH, JKO are samples, so weights == 1
+            self.weights = numpy.ones(len(JK0))
+        else:
+            self.weights = weights
         # Parse dust map
         if dmap3d is None:
             if not _MWDUSTLOADED:
@@ -3200,7 +3206,7 @@ class apogeeEffectiveSelect:
         self._dmap3d= dmap3d
         return None
 
-    def __call__(self,location,dist,MH=None, JK0=None):
+    def __call__(self,location,dist,MH=None, JK0=None, weights=None):
         """
         NAME:
            __call__
@@ -3218,6 +3224,7 @@ class apogeeEffectiveSelect:
         """
         if MH is None: MH= self._MH
         if JK0 is None: JK0= self._JK0
+        if weights is None: weights = self.weights
         distmod= 5.*numpy.log10(dist)+10.
         # Extract the distribution of A_H at this distance from the dust map
         lcen, bcen= self._apoSel.glonGlat(location)
@@ -3227,14 +3234,15 @@ class apogeeEffectiveSelect:
         out= numpy.zeros_like(dist)
         # Cache the values of the selection function
         cohorts= ['short','medium','long']
-        hmins= dict((c,self._apoSel.Hmin(location,cohort=c)) for c in cohorts)
-        hmaxs= dict((c,self._apoSel.Hmax(location,cohort=c)) for c in cohorts)
+        hmins= dict((c,self._apoSel.Hmin(location,cohort=c)[0]) for c in cohorts)
+        hmaxs= dict((c,self._apoSel.Hmax(location,cohort=c)[0]) for c in cohorts)
 
         if self._iscolorbinned:
             jkbins = [self._apoSel.JKmin(location,bin=i) for i in range(self._apoSel.NColorBins(location))]
             jkbins.extend([999.,])
-            jkmid = [(jkbins[i]+jkbins[i+1])/2. for i in range(len(jkbins)-1)]
-            selfunc= dict((c,[self._apoSel(location,(hmins[c]+hmaxs[c])/2.,[jkmid[i]]) for i in range(len(jkmid))]) for c in cohorts)
+            jkbins = numpy.array(jkbins)
+            jkmid = (jkbins[1:]+jkbins[:-1])/2.
+            selfunc= dict((c,[self._apoSel(location,(hmins[c]+hmaxs[c])/2.,jkmid[i]) for i in range(len(jkmid))]) for c in cohorts)
         else:
             selfunc= dict((c,self._apoSel(location,(hmins[c]+hmaxs[c])/2.))
                         for c in cohorts)
@@ -3247,9 +3255,11 @@ class apogeeEffectiveSelect:
                     mh = MH[ii]
                     indx= (hmins[cohort]-mh-distmod < ah)\
                         *(hmaxs[cohort]-mh-distmod > ah)
-                    cbin = numpy.where(JK0[ii] > jkbins )[0][0]
+                    cbin = numpy.digitize(JK0[ii], jkbins)-1
+                    if cbin == -1:
+                        continue
                     for jj in range(len(dist)):
-                        out[jj]+= selfunc[cohort][cbin]\
+                        out[jj]+= weights[ii]*selfunc[cohort][cbin]\
                             *numpy.sum(pixarea[indx[:,jj]])/totarea
             else:
                 for mh in MH:
@@ -3258,7 +3268,7 @@ class apogeeEffectiveSelect:
                     for ii in range(len(dist)):
                         out[ii]+= selfunc[cohort]\
                             *numpy.sum(pixarea[indx[:,ii]])/totarea
-        return out/len(MH)
+        return out/numpy.sum(weights)
 
 def _append_field_recarray(recarray, name, new):
     new = numpy.asarray(new)
