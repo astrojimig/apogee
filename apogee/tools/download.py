@@ -194,13 +194,16 @@ def astroNNDistances(dr=None):
        2018-02-15 - Written - Bovy (UofT)
     """
     if dr is None: dr= path._default_dr()
-    # First make sure the file doesn't exist
-    filePath= path.astroNNDistancesPath(dr=dr)
-    if os.path.exists(filePath): return None
-    # Create the file path
-    downloadPath= 'https://github.com/henrysky/astroNN_gaia_dr2_paper/raw/'\
-        'master/apogee_dr14_nn_dist.fits'
-    _download_file(downloadPath,filePath,dr,verbose=True)
+    if int(dr) > 14:
+        astroNN(dr=dr)
+    else:
+        # First make sure the file doesn't exist
+        filePath= path.astroNNDistancesPath(dr=dr)
+        if os.path.exists(filePath): return None
+        # Create the file path
+        downloadPath= 'https://github.com/henrysky/astroNN_gaia_dr2_paper/raw/'\
+            'master/apogee_dr14_nn_dist.fits'
+        _download_file(downloadPath,filePath,dr,verbose=True)
     return None
 
 def astroNNAges(dr=None):
@@ -217,13 +220,16 @@ def astroNNAges(dr=None):
        2018-02-16 - Written - Bovy (UofT)
     """
     if dr is None: dr= path._default_dr()
-    # First make sure the file doesn't exist
-    filePath= path.astroNNAgesPath(dr=dr)
-    if os.path.exists(filePath): return None
-    # Create the file path
-    downloadPath= 'http://www.astro.ljmu.ac.uk/~astjmack/APOGEEGaiaAges/'\
-                  'astroNNBayes_ages_goodDR14.fits'
-    _download_file(downloadPath,filePath,dr,verbose=True)
+    if int(dr) > 14:
+        astronn(dr=dr)
+    else:
+        # First make sure the file doesn't exist
+        filePath= path.astroNNAgesPath(dr=dr)
+        if os.path.exists(filePath): return None
+        # Create the file path
+        downloadPath= 'http://www.astro.ljmu.ac.uk/~astjmack/APOGEEGaiaAges/'\
+                      'astroNNBayes_ages_goodDR14.fits'
+        _download_file(downloadPath,filePath,dr,verbose=True)
     return None
 
 def aspcapStar(loc_id,apogee_id,telescope='apo25m',dr=None):
@@ -809,6 +815,7 @@ def _base_url(dr,rc=False):
     elif dr == '13': return _DR13_URL
     elif dr == '14': return _DR14_URL
     elif dr == '16': return _DR16_URL
+    elif dr == '17': return _DR17_URL
     else: return _PROPRIETARY_URL
 
 def _dr_string(dr):
