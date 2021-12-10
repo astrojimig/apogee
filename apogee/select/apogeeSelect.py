@@ -3014,7 +3014,7 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
                     design = self._apogee1Design
                     desIndx = self._designs1Indx
                     locs = self._apo1_locations
-                elif self.apo2year >= 7:
+                elif self.apo2year >= 7 and specdata['LOCATION_ID'][ii] in self._apo2_locations:
                     #if specdata['LOCATION_ID'][ii] in self._apo2S_locations:
                     if b'lco25m' in specdata['APSTAR_ID'][ii]:
                         survey = 2
@@ -3043,13 +3043,13 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
                             indx=numpy.logical_or(indx, allVisit['ORIG_INDX'] == PKindex[pki])
                     avisitsplate= int(allVisit['PLATE'][indx][0])
                     #Find the design corresponding to this plate
-                    tplatesIndx= (self._plates == avisitsplate)
+                    tplatesIndx= (platelist == avisitsplate)
                 except:
                     print(PKindex)
                     print(specdata['VISIT_PK'][ii])
                     print(specdata['APSTAR_ID'][ii])
                     indx=numpy.zeros(len(allVisit['ORIG_INDX']),dtype=bool)
-                    tplatesIndx=numpy.zeros(len(self._plates),dtype=bool)
+                    tplatesIndx=numpy.zeros(len(platelist),dtype=bool)
                 if numpy.sum(indx) == 0.:
                     #Hasn't happened so far
                     print("Warning: no visit in combined spectrum found for data point %s" % specdata['APSTAR_ID'][ii]            )
