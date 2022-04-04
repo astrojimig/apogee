@@ -15,11 +15,11 @@ _DR12_URL= 'http://data.sdss3.org/sas/dr12'
 _DR13_URL= 'http://data.sdss.org/sas/dr13'
 _DR14_URL= 'http://data.sdss.org/sas/dr14'
 _DR16_URL= 'https://data.sdss.org/sas/dr16'
-_DR17_URL= 'https://data.sdss.org/sas/dr17' #Temporary until the public release!
+_DR17_URL= 'https://data.sdss.org/sas/dr17'
 _PROPRIETARY_URL= 'https://data.sdss.org/sas/apogeework'
 _MAX_NTRIES= 2
 _ERASESTR= "                                                                                "
-def allStar(dr=None,mjd=58104):
+def allStar(dr=None,lite=False,mjd=58104):
     """
     NAME:
        allStar
@@ -27,6 +27,7 @@ def allStar(dr=None,mjd=58104):
        download the allStar file
     INPUT:
        dr= return the path corresponding to this data release (general default)
+       lite= (False) if True, use the 'lite' version of allStar that only contains a subset of all columns (only available for DR16 and DR17)
        mjd= (58104) MJD of version for monthly internal pipeline runs
     OUTPUT:
        (none; just downloads)
@@ -34,13 +35,14 @@ def allStar(dr=None,mjd=58104):
        2014-11-26 - Written - Bovy (IAS)
        2015-08-17 - Adjusted for new path (mv old to new) - Bovy (UofT)
        2018-01-22 - Edited for new monthly pipeline runs - Bovy (UofT)
+       2022-02-11 - Added lite option - Bovy (UofT)
     """
     if dr is None: dr= path._default_dr()
     # First make sure the file doesn't exist
-    filePath= path.allStarPath(dr=dr,mjd=mjd)
+    filePath= path.allStarPath(dr=dr,mjd=mjd,lite=lite)
     if os.path.exists(filePath): return None
     # Check whether we can find it in its old place
-    oldFilePath= path.allStarPath(dr=dr,_old=True)
+    oldFilePath= path.allStarPath(dr=dr,_old=True,lite=lite)
     if os.path.exists(oldFilePath):
         # mv to new place
         try:
@@ -192,11 +194,10 @@ def astroNNDistances(dr=None):
        (none; just downloads)
     HISTORY:
        2018-02-15 - Written - Bovy (UofT)
+       2022-03-23 - Edited for dr>14 - Hopkins (Oxford)
     """
     if dr is None: dr= path._default_dr()
-    if int(dr) > 14:
-        astroNN(dr=dr)
-    else:
+    if int(dr) == 14:
         # First make sure the file doesn't exist
         filePath= path.astroNNDistancesPath(dr=dr)
         if os.path.exists(filePath): return None
@@ -204,7 +205,9 @@ def astroNNDistances(dr=None):
         downloadPath= 'https://github.com/henrysky/astroNN_gaia_dr2_paper/raw/'\
             'master/apogee_dr14_nn_dist.fits'
         _download_file(downloadPath,filePath,dr,verbose=True)
-    return None
+        return None
+    else: # From DR16 onwards, one astroNN file
+        return astroNN(dr=dr)
 
 def astroNNAges(dr=None):
     """
@@ -218,11 +221,10 @@ def astroNNAges(dr=None):
        (none; just downloads)
     HISTORY:
        2018-02-16 - Written - Bovy (UofT)
+       2022-03-23 - Edited for dr>14 - Hopkins (Oxford)
     """
     if dr is None: dr= path._default_dr()
-    if int(dr) > 14:
-        astronn(dr=dr)
-    else:
+    if int(dr) == 14:
         # First make sure the file doesn't exist
         filePath= path.astroNNAgesPath(dr=dr)
         if os.path.exists(filePath): return None
@@ -230,7 +232,9 @@ def astroNNAges(dr=None):
         downloadPath= 'http://www.astro.ljmu.ac.uk/~astjmack/APOGEEGaiaAges/'\
                       'astroNNBayes_ages_goodDR14.fits'
         _download_file(downloadPath,filePath,dr,verbose=True)
-    return None
+        return None
+    else: # From DR16 onwards, one astroNN file
+        return astroNN(dr=dr)
 
 def aspcapStar(loc_id,apogee_id,telescope='apo25m',dr=None):
     """
