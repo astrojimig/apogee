@@ -2468,9 +2468,9 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
         out= []
         for ii in range(len(self._locations)):
             if cohort.lower() == 'all' and \
-                    ((numpy.nanmax(self._short_completion[ii,:]) >= self._frac4complete and numpy.nansum(self._nspec_short[ii], axis=1) >= self._minnspec) \
-                         or (numpy.nanmax(self._medium_completion[ii,:]) >= self._frac4complete and numpy.nansum(self._nspec_medium[ii], axis=1) >= self._minnspec) \
-                         or (numpy.nanmax(self._long_completion[ii,:]) >= self._frac4complete and numpy.nansum(self._nspec_long[ii], axis=1) >= self._minnspec)):
+                    ((numpy.nanmax(self._short_completion[ii,:]) >= self._frac4complete and numpy.nansum(self._nspec_short[ii]) >= self._minnspec) \
+                         or (numpy.nanmax(self._medium_completion[ii,:]) >= self._frac4complete and numpy.nansum(self._nspec_medium[ii]) >= self._minnspec) \
+                         or (numpy.nanmax(self._long_completion[ii,:]) >= self._frac4complete and numpy.nansum(self._nspec_long[ii]) >= self._minnspec)):
                 #There is a completed cohort
                 out.append(self._locations[ii])
             elif cohort.lower() == 'short' and numpy.nansum(self._nspec_short[ii]) >= self._minnspec and \
