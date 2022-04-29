@@ -168,11 +168,8 @@ def allStar(rmcommissioning=True,
        2018-02-15 - Add astroNN distances and corresponding options - Bovy (UofT)
        2018-02-16 - Add astroNN ages and corresponding options - Bovy (UofT)
        2019-08-13 - Edited for DR16 (incl. astroNN) - Bovy (UofT)
-<<<<<<< HEAD
        2021-08-30 - Edited for DR17 / added distmass options - Imig (NMSU)
-=======
        2022-02-11 - Added lite option - Bovy (UofT)
->>>>>>> 04c909cb31d26fa3a81a472aa5ed0c8304022c25
     """
     if dr is None:
         filePath= path.allStarPath(mjd=mjd,lite=lite)
@@ -258,7 +255,8 @@ def allStar(rmcommissioning=True,
         except TypeError:
             indx= numpy.array(['apogee.n.c' in s for s in data['APSTAR_ID']])
             indx+= numpy.array(['apogee.s.c' in s for s in data['APSTAR_ID']])
-        except ValueError:
+        except (ValueError, KeyError):
+            #lite 
             indx= (data['EXTRATARG'] & 2**1) != 0
         data= data[True^indx]
         if not xmatch is None: ma= ma[True^indx]
