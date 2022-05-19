@@ -2848,8 +2848,8 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
             allVisit= apread.allVisit(mjd=self._mjd, plateS4=True)
         else:
             allVisit= apread.allVisit(plateS4=True) #no need to cut to main, don't care about special plates
-
-        if self.apo2year < 10:
+        if self._dr != '17':
+            #old data releases dont have allVisit indexing - need to make the list of visits
             #make sure we have all the relevant columns for 'visits' as bytes - to make things easier
             if not isinstance(allVisit['PLATE'][0], (bytes,numpy.bytes_)):
                 visitsplates = [allVisit['PLATE'][ii].encode('utf-8') for ii in range(len(allVisit))]
@@ -2868,26 +2868,54 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
             #Go through the spectroscopic sample and check that it is in a full cohort
             plateIncomplete= 0
             for ii in tqdm.trange(len(specdata)):
+                #this is the bit that could be inconsistent with the separated selection function objects
                 #determine if APOGEE-1 or 2!
-                if specdata['LOCATION_ID'][ii] in self._apo1_locations:
+                surv = specdata['SURVEY'][ii]
+                if not isinstance(surv, (bytes,numpy.bytes_)):
+                    surv = surv.encode('utf-8')
+                if ((surv == b'apogee')
+                    + (surv == b'apogee,apogee-marvels')
+                    + (surv == b'apogee,apogee-marvels,apogee2')
+                    + (surv == b'apogee,apogee-marvels,apogee2-manga')
+                    + (surv == b'apogee,apogee2')
+                    + (surv == b'apogee,apogee2,apogee2-manga')
+                    + (surv == b'apogee,apogee2-manga')
+                    + (surv == b'apogee-marvels')
+                    + (surv == b'apogee-marvels,apogee2')
+                    + (surv == b'apogee-marvels,apogee2-manga')
+                    + (surv == b'apogee-marvels,apogee,apogee2-ma')
+                    + (surv == b'apogee-marvels,apogee')
+                    + (surv == b'apogee-marvels,apogee2,apogee')):
+                    #is apogee-1
                     survey = 1
                     platelist = self._1plates
                     design = self._apogee1Design
                     desIndx = self._designs1Indx
                     locs = self._apo1_locations
-                elif specdata['LOCATION_ID'][ii] in self._apo2N_locations:
+                elif ((surv == b'apogee2')
+                    + (surv == b'apogee2-manga')
+                    + (surv == b'manga-apogee2')
+                    + (surv == b'apogee2,apogee2-manga')
+                    + (surv == b'apogee2-manga,apogee2')
+                    + (surv == b'apogee2,apogee')
+                    + (surv == b'apogee2-manga,apogee,apogee2')
+                    + (surv == b'apogee2,apogee,apogee2-manga')
+                    + (surv == b'apogee2,apogee2-manga,apogee')
+                    + (surv == b'apogee2-manga,apogee')
+                    + (surv == b'apogee2-manga,apogee2,apogee')):
+                    #is apogee-2
                     survey = 2
                     platelist = self._2Nplates
                     design = self._apogee2NDesign
                     desIndx = self._designs2NIndx
                     locs = self._apo2N_locations
-                elif self.apo2year >= 7:
-                    if specdata['LOCATION_ID'][ii] in self._apo2S_locations:
-                        survey = 2
-                        platelist = self._2Splates
-                        design = self._apogee2SDesign
-                        desIndx = self._designs2SIndx
-                        locs = self._apo2S_locations
+                elif (surv == b'apogee2s'):
+                    #is apogee-2s
+                    survey = 2
+                    platelist = self._2Splates
+                    design = self._apogee2SDesign
+                    desIndx = self._designs2SIndx
+                    locs = self._apo2S_locations
                 else:
                     continue
                 if isinstance(specdata['VISITS'][ii], (bytes,numpy.bytes_)):
