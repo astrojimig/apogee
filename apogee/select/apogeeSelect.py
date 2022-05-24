@@ -1515,7 +1515,8 @@ class apogee1Select(apogeeSelect):
             allVisit= apread.allVisit(mjd=self._mjd, plateS4=True)
         else:
             allVisit= apread.allVisit(plateS4=True) #no need to cut to main, don't care about special plates
-        if self._dr != '17':
+        
+        if appath._default_dr() != '17':
             #old data releases dont have the allVisit indexing
             #make sure we have all the relevant columns for 'visits' as bytes - to make things easier
             if not isinstance(allVisit['PLATE'][0], (bytes,numpy.bytes_)):
@@ -1535,7 +1536,7 @@ class apogee1Select(apogeeSelect):
         #Go through the spectroscopic sample and check that it is in a full cohort
         plateIncomplete= 0
         for ii in tqdm.trange(len(specdata)):
-            if self._dr == '17':
+            if appath._default_dr() == '17':
                 #indexing is in allVisit file
                 #use VISIT_PK for cross matching instead.
                 PKindex = specdata['VISIT_PK'][ii][specdata['VISIT_PK'][ii]>=0]
@@ -1727,6 +1728,16 @@ class apogee1Select(apogeeSelect):
         else:
             indx= jko >= 0.5
         allStar= allStar[indx]
+        if len(allStar) == 0:
+            #all stars removed
+            warnings.warn('No stars remain after cutting to stars in selected locations...')
+            nspec_short= numpy.zeros(len(self._locations))+numpy.nan
+            nspec_medium= numpy.zeros(len(self._locations))+numpy.nan
+            nspec_long= numpy.zeros(len(self._locations))+numpy.nan
+            self._nspec_short= nspec_short
+            self._nspec_medium= nspec_medium
+            self._nspec_long= nspec_long
+            return None
         statIndx= self.determine_statistical(allStar, )
         allStar= allStar[statIndx]
         #Save spectroscopic data by location
@@ -1800,7 +1811,7 @@ class apogee2Select(apogeeSelect):
             allVisit = apread.allVisit(mjd=self._mjd, plateS4=True)
         else:
             allVisit= apread.allVisit(plateS4=True) #no need to cut to main, don't care about special plates
-        if self._dr != '17':
+        if appath._default_dr() != '17':
             #old data releases dont have allVisit indexing - need to make the list of visits
             #make sure we have all the relevant columns for 'visits' as bytes - to make things easier
             if not isinstance(allVisit['PLATE'][0], (bytes,numpy.bytes_)):
@@ -1820,7 +1831,7 @@ class apogee2Select(apogeeSelect):
         #Go through the spectroscopic sample and check that it is in a full cohort
         plateIncomplete= 0
         for ii in tqdm.trange(len(specdata)):
-            if self._dr == '17':
+            if appath._default_dr() == '17':
                 #indexing is in allVisit file
                 PKindex = specdata['VISIT_PK'][ii][specdata['VISIT_PK'][ii]>=0]
                 try:
@@ -2043,6 +2054,16 @@ class apogee2Select(apogeeSelect):
         else:
             indx= jko >= 0.3
         allStar= allStar[indx]
+        if len(allStar) == 0:
+            #all stars removed
+            warnings.warn('No stars remain after cutting to stars in selected locations...')
+            nspec_short= numpy.zeros(len(self._locations))+numpy.nan
+            nspec_medium= numpy.zeros(len(self._locations))+numpy.nan
+            nspec_long= numpy.zeros(len(self._locations))+numpy.nan
+            self._nspec_short= nspec_short
+            self._nspec_medium= nspec_medium
+            self._nspec_long= nspec_long
+            return None
         statIndx= self.determine_statistical(allStar)
         allStar= allStar[statIndx]
         #Save spectroscopic data by location COLORBIN INFO?
@@ -2263,20 +2284,22 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
         self._minnspec = minnspec
         #load an APOGEE 1 and 2 selection function
         if not locations is None:
+            #use obslogs to figure out which is APOGEE 1, 2N and 2S
+            ap1obslog = apread.obslog(year=self.apo1year, )
+            ap2Nobslog = apread.obslog(year=self.apo2year, hemisphere='north')
+            ap2Sobslog = apread.obslog(year=self.apo2year, hemisphere='south')
             ap1_locations= [loc for loc in locations
-                          if loc in apread.apogeeField(dr='12')['LOCATION_ID']]
-            if self.apo2year == 5:
-                ap2_locations= [loc for loc in locations
-                            if loc in apread.apogeeField(dr='14')['LOCATION_ID']]
-            if self.apo2year == 7:
-                ap2_locations= [loc for loc in locations
-                            if loc in apread.apogeeField(dr='16')['LOCATION_ID']]
-            if self.apo2year == 10:
-                ap2_locations= [loc for loc in locations
-                            if loc in apread.apogeeField(dr='17')['LOCATION_ID']]
+                          if loc in numpy.unique(ap1obslog['LocID'])]
+            if self.apo2year > 3:
+                ap2N_locations= [loc for loc in locations
+                            if loc in numpy.unique(ap2Nobslog['LocID'])]
+                ap2S_locations= [loc for loc in locations
+                            if loc in numpy.unique(ap2Sobslog['LocID'])]
         else:
             ap1_locations= None
-            ap2_locations= None
+            ap2N_locations= None
+            ap2S_locations= None
+        print(ap1_locations, ap2N_locations, ap2S_locations)
         #load an APOGEE 1 and 2 selection function
         apo1sel = apogee1Select(year=self.apo1year, mjd=mjd, sample=sample, locations=ap1_locations, _justprocessobslog=_justprocessobslog)
         #add dummy color bin info to apo1sel...
@@ -2288,10 +2311,10 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
         bincomp_apo1 = numpy.ones([len(apo1sel._locations), 5])*numpy.nan
         bincomp_apo1[:,0] = 1.
         apo1sel._bin_completion = bincomp_apo1
-        apo2Nsel = apogee2Select(year=self.apo2year, mjd=mjd, sample=sample, locations=ap2_locations, hemisphere='north', _justprocessobslog=_justprocessobslog)
+        apo2Nsel = apogee2Select(year=self.apo2year, mjd=mjd, sample=sample, locations=ap2N_locations, hemisphere='north', _justprocessobslog=_justprocessobslog)
         aposels = [apo1sel, apo2Nsel]
         if self.apo2year > 5:
-            apo2Ssel = apogee2Select(year=self.apo2year, mjd=mjd, sample=sample, locations=ap2_locations, hemisphere='south', _justprocessobslog=_justprocessobslog)
+            apo2Ssel = apogee2Select(year=self.apo2year, mjd=mjd, sample=sample, locations=ap2S_locations, hemisphere='south', _justprocessobslog=_justprocessobslog)
             aposels.append(apo2Ssel)
         self.apo1dr = apo1sel._dr
         self.apo2dr = apo2Nsel._dr
@@ -2848,7 +2871,7 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
             allVisit= apread.allVisit(mjd=self._mjd, plateS4=True)
         else:
             allVisit= apread.allVisit(plateS4=True) #no need to cut to main, don't care about special plates
-        if self._dr != '17':
+        if appath._default_dr() != '17':
             #old data releases dont have allVisit indexing - need to make the list of visits
             #make sure we have all the relevant columns for 'visits' as bytes - to make things easier
             if not isinstance(allVisit['PLATE'][0], (bytes,numpy.bytes_)):
@@ -2971,28 +2994,54 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
             statIndx= numpy.zeros(len(specdata),dtype='bool')
             plateIncomplete= 0
             for ii in tqdm.trange(len(specdata)):
+                #this is the bit that could be inconsistent with the separated selection function objects
                 #determine if APOGEE-1 or 2!
-                if specdata['LOCATION_ID'][ii] in self._apo1_locations:
+                surv = specdata['SURVEY'][ii]
+                if not isinstance(surv, (bytes,numpy.bytes_)):
+                    surv = surv.encode('utf-8')
+                if ((surv == b'apogee')
+                    + (surv == b'apogee,apogee-marvels')
+                    + (surv == b'apogee,apogee-marvels,apogee2')
+                    + (surv == b'apogee,apogee-marvels,apogee2-manga')
+                    + (surv == b'apogee,apogee2')
+                    + (surv == b'apogee,apogee2,apogee2-manga')
+                    + (surv == b'apogee,apogee2-manga')
+                    + (surv == b'apogee-marvels')
+                    + (surv == b'apogee-marvels,apogee2')
+                    + (surv == b'apogee-marvels,apogee2-manga')
+                    + (surv == b'apogee-marvels,apogee,apogee2-ma')
+                    + (surv == b'apogee-marvels,apogee')
+                    + (surv == b'apogee-marvels,apogee2,apogee')):
+                    #is apogee-1
                     survey = 1
                     platelist = self._1plates
                     design = self._apogee1Design
                     desIndx = self._designs1Indx
                     locs = self._apo1_locations
-                elif self.apo2year >= 7 and specdata['LOCATION_ID'][ii] in self._apo2_locations:
-                    #if specdata['LOCATION_ID'][ii] in self._apo2S_locations:
-                    if b'lco25m' in specdata['APSTAR_ID'][ii]:
-                        survey = 2
-                        platelist = self._2Splates
-                        design = self._apogee2SDesign
-                        desIndx = self._designs2SIndx
-                        locs = self._apo2S_locations
-                    #elif specdata['LOCATION_ID'][ii] in self._apo2N_locations:
-                    elif b'apo25m' in specdata['APSTAR_ID'][ii]:
-                        survey = 2
-                        platelist = self._2Nplates
-                        design = self._apogee2NDesign
-                        desIndx = self._designs2NIndx
-                        locs = self._apo2N_locations
+                elif ((surv == b'apogee2')
+                    + (surv == b'apogee2-manga')
+                    + (surv == b'manga-apogee2')
+                    + (surv == b'apogee2,apogee2-manga')
+                    + (surv == b'apogee2-manga,apogee2')
+                    + (surv == b'apogee2,apogee')
+                    + (surv == b'apogee2-manga,apogee,apogee2')
+                    + (surv == b'apogee2,apogee,apogee2-manga')
+                    + (surv == b'apogee2,apogee2-manga,apogee')
+                    + (surv == b'apogee2-manga,apogee')
+                    + (surv == b'apogee2-manga,apogee2,apogee')):
+                    #is apogee-2
+                    survey = 2
+                    platelist = self._2Nplates
+                    design = self._apogee2NDesign
+                    desIndx = self._designs2NIndx
+                    locs = self._apo2N_locations
+                elif (surv == b'apogee2s'):
+                    #is apogee-2s
+                    survey = 2
+                    platelist = self._2Splates
+                    design = self._apogee2SDesign
+                    desIndx = self._designs2SIndx
+                    locs = self._apo2S_locations
                 else:
                     continue
                 
