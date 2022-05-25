@@ -1737,6 +1737,7 @@ class apogee1Select(apogeeSelect):
             self._nspec_short= nspec_short
             self._nspec_medium= nspec_medium
             self._nspec_long= nspec_long
+            self._specdata = {}
             return None
         statIndx= self.determine_statistical(allStar, )
         allStar= allStar[statIndx]
@@ -2057,12 +2058,13 @@ class apogee2Select(apogeeSelect):
         if len(allStar) == 0:
             #all stars removed
             warnings.warn('No stars remain after cutting to stars in selected locations...')
-            nspec_short= numpy.zeros(len(self._locations))+numpy.nan
-            nspec_medium= numpy.zeros(len(self._locations))+numpy.nan
-            nspec_long= numpy.zeros(len(self._locations))+numpy.nan
+            nspec_short= numpy.zeros([len(self._locations),5])+numpy.nan
+            nspec_medium= numpy.zeros([len(self._locations),5])+numpy.nan
+            nspec_long= numpy.zeros([len(self._locations),5])+numpy.nan
             self._nspec_short= nspec_short
             self._nspec_medium= nspec_medium
             self._nspec_long= nspec_long
+            self._specdata = {} #empty dict
             return None
         statIndx= self.determine_statistical(allStar)
         allStar= allStar[statIndx]
@@ -2299,7 +2301,6 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
             ap1_locations= None
             ap2N_locations= None
             ap2S_locations= None
-        print(ap1_locations, ap2N_locations, ap2S_locations)
         #load an APOGEE 1 and 2 selection function
         apo1sel = apogee1Select(year=self.apo1year, mjd=mjd, sample=sample, locations=ap1_locations, _justprocessobslog=_justprocessobslog)
         #add dummy color bin info to apo1sel...
@@ -2404,6 +2405,7 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
             self._photdata.update(apo2Nsel._photdata)
             if len(aposels) > 2:
                 self._photdata.update(apo2Ssel._photdata)
+            
             self._nspec_short = numpy.concatenate([sel._nspec_short for sel in aposels])
             self._nspec_medium = numpy.concatenate([sel._nspec_medium for sel in aposels])
             self._nspec_long = numpy.concatenate([sel._nspec_long for sel in aposels])
