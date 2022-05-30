@@ -2896,8 +2896,10 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
                 #this is the bit that could be inconsistent with the separated selection function objects
                 #determine if APOGEE-1 or 2!
                 surv = specdata['SURVEY'][ii]
+                scope = specdata['TELESCOPE'][ii]
                 if not isinstance(surv, (bytes,numpy.bytes_)):
                     surv = surv.encode('utf-8')
+                    scope = scope.encode('utf-8')
                 if ((surv == b'apogee')
                     + (surv == b'apogee,apogee-marvels')
                     + (surv == b'apogee,apogee-marvels,apogee2')
@@ -2910,7 +2912,8 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
                     + (surv == b'apogee-marvels,apogee2-manga')
                     + (surv == b'apogee-marvels,apogee,apogee2-ma')
                     + (surv == b'apogee-marvels,apogee')
-                    + (surv == b'apogee-marvels,apogee2,apogee')):
+                    + (surv == b'apogee-marvels,apogee2,apogee'))
+                    * (scope == b'apo25m'):
                     #is apogee-1
                     survey = 1
                     platelist = self._1plates
@@ -2927,14 +2930,15 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
                     + (surv == b'apogee2,apogee,apogee2-manga')
                     + (surv == b'apogee2,apogee2-manga,apogee')
                     + (surv == b'apogee2-manga,apogee')
-                    + (surv == b'apogee2-manga,apogee2,apogee')):
+                    + (surv == b'apogee2-manga,apogee2,apogee'))
+                    * (scope == b'apo25m'):
                     #is apogee-2
                     survey = 2
                     platelist = self._2Nplates
                     design = self._apogee2NDesign
                     desIndx = self._designs2NIndx
                     locs = self._apo2N_locations
-                elif (surv == b'apogee2s'):
+                elif (surv == b'apogee2s') * (scope == b'lco25m'):
                     #is apogee-2s
                     survey = 2
                     platelist = self._2Splates
@@ -2999,8 +3003,10 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
                 #this is the bit that could be inconsistent with the separated selection function objects
                 #determine if APOGEE-1 or 2!
                 surv = specdata['SURVEY'][ii]
+                scope = specdata['TELESCOPE'][ii]
                 if not isinstance(surv, (bytes,numpy.bytes_)):
                     surv = surv.encode('utf-8')
+                    scope = scope.encode('utf-8')
                 if ((surv == b'apogee')
                     + (surv == b'apogee,apogee-marvels')
                     + (surv == b'apogee,apogee-marvels,apogee2')
@@ -3013,7 +3019,8 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
                     + (surv == b'apogee-marvels,apogee2-manga')
                     + (surv == b'apogee-marvels,apogee,apogee2-ma')
                     + (surv == b'apogee-marvels,apogee')
-                    + (surv == b'apogee-marvels,apogee2,apogee')):
+                    + (surv == b'apogee-marvels,apogee2,apogee'))
+                    * (scope == b'apo25m'):
                     #is apogee-1
                     survey = 1
                     platelist = self._1plates
@@ -3030,14 +3037,15 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
                     + (surv == b'apogee2,apogee,apogee2-manga')
                     + (surv == b'apogee2,apogee2-manga,apogee')
                     + (surv == b'apogee2-manga,apogee')
-                    + (surv == b'apogee2-manga,apogee2,apogee')):
+                    + (surv == b'apogee2-manga,apogee2,apogee'))
+                    * (scope == b'apo25m'):
                     #is apogee-2
                     survey = 2
                     platelist = self._2Nplates
                     design = self._apogee2NDesign
                     desIndx = self._designs2NIndx
                     locs = self._apo2N_locations
-                elif (surv == b'apogee2s'):
+                elif (surv == b'apogee2s') * (scope == b'lco25m'):
                     #is apogee-2s
                     survey = 2
                     platelist = self._2Splates
@@ -3095,17 +3103,16 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
                 if survey == 1:
                     cbin = 0
                 locIndx= specdata['LOCATION_ID'][ii] == self._locations
-                try:
-                    if cohortnum > 0 and tcohort != '???' and \
-                            ((tcohort == 'short' and self._short_completion[locIndx,cohortnum-1] >= self._frac4complete) \
-                                or (tcohort == 'medium' and self._medium_completion[locIndx,cohortnum-1] >= self._frac4complete) \
-                                or (tcohort == 'long' and self._long_completion[locIndx,cohortnum-1] >= self._frac4complete)) and \
-                                self._bin_completion[locIndx,cbin] >= self._frac4complete:
-                        statIndx[ii]= True
-                except:
-                    print("Warning: problem with determine_statistical for %s" % specdata['APSTAR_ID'][ii])
-                    statIndx[ii] = False
-                    continue
+                if cohortnum > 0 and tcohort != '???' and \
+                        ((tcohort == 'short' and self._short_completion[locIndx,cohortnum-1] >= self._frac4complete) \
+                            or (tcohort == 'medium' and self._medium_completion[locIndx,cohortnum-1] >= self._frac4complete) \
+                            or (tcohort == 'long' and self._long_completion[locIndx,cohortnum-1] >= self._frac4complete)) and \
+                            self._bin_completion[locIndx,cbin] >= self._frac4complete:
+                    statIndx[ii]= True
+                #except:
+                #    print("Warning: problem with determine_statistical for %s" % specdata['APSTAR_ID'][ii])
+                #    statIndx[ii] = False
+                #    continue
 
         return statIndx*apread.mainIndx(specdata)
 
