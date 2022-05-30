@@ -3045,6 +3045,7 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
                     design = self._apogee2NDesign
                     desIndx = self._designs2NIndx
                     locs = self._apo2N_locations
+                    NSindx = 1 
                 elif (surv == b'apogee2s') * (scope == b'lco25m'):
                     #is apogee-2s
                     survey = 2
@@ -3052,6 +3053,7 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
                     design = self._apogee2SDesign
                     desIndx = self._designs2SIndx
                     locs = self._apo2S_locations
+                    NSindx = 0
                 else:
                     continue
                 
@@ -3102,7 +3104,9 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
                             cbin = b
                 if survey == 1:
                     cbin = 0
-                locIndx= specdata['LOCATION_ID'][ii] == self._locations
+                locIndx= specdata['LOCATION_ID'][ii] == self._locations #for N + S fields this has two results.
+                if sum(locIndx) > 1:
+                    locIndx[locIndx][NSindx] = False #knock out the alternative field
                 if cohortnum > 0 and tcohort != '???' and \
                         ((tcohort == 'short' and self._short_completion[locIndx,cohortnum-1] >= self._frac4complete) \
                             or (tcohort == 'medium' and self._medium_completion[locIndx,cohortnum-1] >= self._frac4complete) \
