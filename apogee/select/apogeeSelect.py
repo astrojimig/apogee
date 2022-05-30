@@ -2912,8 +2912,8 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
                     + (surv == b'apogee-marvels,apogee2-manga')
                     + (surv == b'apogee-marvels,apogee,apogee2-ma')
                     + (surv == b'apogee-marvels,apogee')
-                    + (surv == b'apogee-marvels,apogee2,apogee'))
-                    * (scope == b'apo25m'):
+                    + (surv == b'apogee-marvels,apogee2,apogee')
+                    * (scope == b'apo25m')):
                     #is apogee-1
                     survey = 1
                     platelist = self._1plates
@@ -2930,8 +2930,8 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
                     + (surv == b'apogee2,apogee,apogee2-manga')
                     + (surv == b'apogee2,apogee2-manga,apogee')
                     + (surv == b'apogee2-manga,apogee')
-                    + (surv == b'apogee2-manga,apogee2,apogee'))
-                    * (scope == b'apo25m'):
+                    + (surv == b'apogee2-manga,apogee2,apogee')
+                    * (scope == b'apo25m')):
                     #is apogee-2
                     survey = 2
                     platelist = self._2Nplates
@@ -3019,8 +3019,8 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
                     + (surv == b'apogee-marvels,apogee2-manga')
                     + (surv == b'apogee-marvels,apogee,apogee2-ma')
                     + (surv == b'apogee-marvels,apogee')
-                    + (surv == b'apogee-marvels,apogee2,apogee'))
-                    * (scope == b'apo25m'):
+                    + (surv == b'apogee-marvels,apogee2,apogee')
+                    * (scope == b'apo25m')):
                     #is apogee-1
                     survey = 1
                     platelist = self._1plates
@@ -3037,8 +3037,8 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
                     + (surv == b'apogee2,apogee,apogee2-manga')
                     + (surv == b'apogee2,apogee2-manga,apogee')
                     + (surv == b'apogee2-manga,apogee')
-                    + (surv == b'apogee2-manga,apogee2,apogee'))
-                    * (scope == b'apo25m'):
+                    + (surv == b'apogee2-manga,apogee2,apogee')
+                    * (scope == b'apo25m')):
                     #is apogee-2
                     survey = 2
                     platelist = self._2Nplates
