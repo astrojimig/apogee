@@ -294,7 +294,8 @@ def allStar(rmcommissioning=True,
                     + (surv == b'apogee2,apogee,apogee2-manga')
                     + (surv == b'apogee2,apogee2-manga,apogee')
                     + (surv == b'apogee2-manga,apogee')
-                    + (surv == b'apogee2-manga,apogee2,apogee'))
+                    + (surv == b'apogee2-manga,apogee2,apogee')
+                    + (surv == b'apogee2s'))
         data= data[indx]
         if not xmatch is None: ma= ma[indx]
     if test:
