@@ -805,9 +805,11 @@ def _download_file(downloadPath,filePath,dr,verbose=False,spider=False):
                 os.remove(tmp_savefilename)
         # Try the mirror and the data both
         if ntries % 2 == 1:
-            downloadPath= downloadPath.replace('data.sdss','mirror.sdss')
+            #downloadPath= downloadPath.replace('data.sdss','mirror.sdss')
+            downloadPath= downloadPath.replace('data.sdss','sas.sdss')
         else:
-            downloadPath= downloadPath.replace('mirror.sdss','data.sdss')
+            #downloadPath= downloadPath.replace('mirror.sdss','data.sdss')
+            downloadPath= downloadPath.replace('sas.sdss','data.sdss')
         ntries+= 1
     sys.stdout.write('\r'+_ERASESTR+'\r')
     sys.stdout.flush()
