@@ -2173,7 +2173,7 @@ class apogee2Select(apogeeSelect):
         fn2/= fn2[-1]
         return (sortphot['H'],sortspec['H'],fn1,fn2)
 
-    def JKmin(self, location_id, bin=0):
+    def JKmin(self, location_id, bin_i=0):
         """
         NAME:
           JKmin
@@ -2188,10 +2188,10 @@ class apogee2Select(apogeeSelect):
            2018-05-21 - Written - Mackereth (LJMU)
         """
         locIndx= self._locations == location_id
-        min = self._color_bins_jkmin[locIndx,bin][0]
-        return min
+        jkmin = self._color_bins_jkmin[locIndx,bin_i][0]
+        return jkmin
 
-    def JKmax(self, location_id, bin=0):
+    def JKmax(self, location_id, bin_i=0):
         """
         NAME:
           JKmax
@@ -2206,8 +2206,8 @@ class apogee2Select(apogeeSelect):
            2018-05-21 - Written - Mackereth (LJMU)
         """
         locIndx= self._locations == location_id
-        max = self._color_bins_jkmax[locIndx,bin][0]
-        return max
+        jkmax = self._color_bins_jkmax[locIndx,bin_i][0]
+        return jkmax
 
     def NColorBins(self, location_id):
         """
@@ -2690,7 +2690,7 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
         locIndx= self._locations == location_id
         return self.__dict__['_%s_hmax' % cohort][locIndx]
 
-    def JKmin(self, location_id, bin=0):
+    def JKmin(self, location_id, bin_i=0):
         """
         NAME:
           JKmin
@@ -2705,10 +2705,10 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
            2018-05-21 - Written - Mackereth (LJMU)
         """
         locIndx= self._locations == location_id
-        min = self._color_bins_jkmin[locIndx,bin][0]
-        return min
+        jkmin = self._color_bins_jkmin[locIndx,bin_i][0]
+        return jkmin
 
-    def JKmax(self, location_id, bin=0):
+    def JKmax(self, location_id, bin_i=0):
         """
         NAME:
           JKmax
@@ -2723,8 +2723,8 @@ class apogeeCombinedSelect(apogeeSelectPlotsMixin):
            2018-05-21 - Written - Mackereth (LJMU)
         """
         locIndx= self._locations == location_id
-        max = self._color_bins_jkmax[locIndx,bin][0]
-        return max
+        jkmax = self._color_bins_jkmax[locIndx,bin_i][0]
+        return jkmax
 
     def NColorBins(self, location_id):
         """
