@@ -3263,7 +3263,7 @@ class apogeeEffectiveSelect:
         hmaxs= dict((c,self._apoSel.Hmax(location,cohort=c)[0]) for c in cohorts)
 
         if self._iscolorbinned:
-            jkbins = [self._apoSel.JKmin(location,bin=i) for i in range(self._apoSel.NColorBins(location))]
+            jkbins = [self._apoSel.JKmin(location,bin_i=i) for i in range(self._apoSel.NColorBins(location))]
             jkbins.extend([999.,])
             jkbins = numpy.array(jkbins)
             jkmid = (jkbins[1:]+jkbins[:-1])/2.
