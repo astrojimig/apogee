@@ -105,7 +105,7 @@ if _INSTALL_FERRE:
     shutil.copy('ascii2bin',get_setuptools_script_dir())
 
 setup(name='apogee',
-      version='1.',
+      version='1.0',
       description='APOGEE data tools',
       author='Jo Bovy',
       author_email='bovy@ias.edu',
@@ -136,5 +136,5 @@ setup(name='apogee',
                           'https://github.com/jobovy/isodist/tarball/master#egg=isodist'],
       install_requires=['numpy','scipy','matplotlib',
                         'astropy','galpy',
-                        'isodist','periodictable','tqdm']
+                        'isodist@git+https://github.com/jobovy/isodist','periodictable','tqdm']
       )
